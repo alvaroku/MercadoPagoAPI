@@ -60,7 +60,7 @@ namespace MercadoPagoAPI.Controllers
             catch (Exception e)
             {
                 _logger.LogError(e, "Error processing webhook");
-                return Ok(); // Siempre Ok para evitar que MP reintente ante errores lógicos
+                return BadRequest();
             }
         }
 
