@@ -1,0 +1,127 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>Checkout</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="font-sans bg-gray-100 m-0 p-5 text-gray-800">
+    <div class="container max-w-6xl mx-auto bg-white p-5 rounded-lg shadow-lg">
+        <h1 class="text-center text-blue-600 mb-8 text-3xl font-bold">MercadoPago Checkout</h1>
+
+        <h2 class="border-b-2 border-blue-600 pb-2 text-gray-600 text-xl mb-5">Available Products</h2>
+        <div id="products" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-8"></div>
+
+        <h2 class="border-b-2 border-blue-600 pb-2 text-gray-600 text-xl mb-5">Cart</h2>
+        <div id="cart" class="bg-gray-50 p-5 rounded-lg mb-5"></div>
+        <div id="total" class="text-xl font-bold text-right mb-5 text-blue-600">Total: $0.00</div>
+        <button id="checkoutBtn" class="block w-full py-4 bg-blue-500 text-white border-none rounded font-semibold cursor-pointer hover:bg-blue-700 transition-colors disabled:bg-gray-500 disabled:cursor-not-allowed" disabled>Proceed to Checkout</button>
+    </div>
+
+    <script>
+        const availableProducts = [
+            { title: "Product 1", unitPrice: 1.00 },
+            { title: "Product 2", unitPrice: 2.00 },
+            { title: "Product 3", unitPrice: 3.00 }
+        ];
+
+        let cart = [];
+
+        const productsDiv = document.getElementById('products');
+        const cartDiv = document.getElementById('cart');
+        const totalDiv = document.getElementById('total');
+        const checkoutBtn = document.getElementById('checkoutBtn');
+
+        // Render available products
+        availableProducts.forEach((product, index) => {
+            const productDiv = document.createElement('div');
+            productDiv.className = 'bg-white border border-gray-300 rounded-lg p-4 text-center shadow-md hover:shadow-lg transition-transform hover:-translate-y-1';
+            productDiv.innerHTML = `
+                <span class="block mb-3 text-lg">${product.title} - $${product.unitPrice.toFixed(2)}</span>
+                <button class="bg-green-500 text-white border-none py-2 px-4 rounded cursor-pointer hover:bg-green-600 transition-colors" onclick="addToCart(${index})">Add to Cart</button>
+            `;
+            productsDiv.appendChild(productDiv);
+        });
+
+        function addToCart(index) {
+            const product = availableProducts[index];
+            const existing = cart.find(item => item.title === product.title);
+            if (existing) {
+                existing.quantity += 1;
+            } else {
+                cart.push({ title: product.title, unitPrice: product.unitPrice, quantity: 1 });
+            }
+            updateCart();
+        }
+
+        function removeFromCart(index) {
+            if (cart[index].quantity > 1) {
+                cart[index].quantity -= 1;
+            } else {
+                cart.splice(index, 1);
+            }
+            updateCart();
+        }
+
+        function updateCart() {
+            cartDiv.innerHTML = '';
+            let total = 0;
+            cart.forEach((item, index) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'flex justify-between items-center py-2 border-b border-gray-200 last:border-b-0';
+                itemDiv.innerHTML = `
+                    <span class="text-lg">${item.title} x${item.quantity} - $${(item.unitPrice * item.quantity).toFixed(2)}</span>
+                    <button class="bg-red-500 text-white border-none py-1 px-3 rounded cursor-pointer hover:bg-red-600 transition-colors" onclick="removeFromCart(${index})">Remove</button>
+                `;
+                cartDiv.appendChild(itemDiv);
+                total += item.unitPrice * item.quantity;
+            });
+            totalDiv.textContent = `Total: $${total.toFixed(2)}`;
+            checkoutBtn.disabled = cart.length === 0;
+        }
+
+        checkoutBtn.addEventListener('click', async () => {
+            checkoutBtn.disabled = true;
+            checkoutBtn.textContent = 'Processing...';
+
+            const checkoutRequest = {
+                ExternalReference: "12345_" + new Date().toISOString().replace(/[:.]/g, '-'),
+                Products: cart.map(item => ({
+                    Title: item.title,
+                    UnitPrice: item.unitPrice,
+                    Quantity: item.quantity
+                }))
+            };
+
+            try {
+                const response = await fetch('https://mercadopagoapi-production.up.railway.app/api/Checkout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(checkoutRequest)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const data = await response.json();
+                if (data.initPoint) {
+                    window.location.href = data.initPoint;
+                } else {
+                    alert('Error: No InitPoint received');
+                    checkoutBtn.disabled = false;
+                    checkoutBtn.textContent = 'Proceed to Checkout';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error processing checkout');
+                checkoutBtn.disabled = false;
+                checkoutBtn.textContent = 'Proceed to Checkout';
+            }
+        });
+    </script>
+</body>
+</html>
