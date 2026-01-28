@@ -32,6 +32,23 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 
 var app = builder.Build();
 
+// Bloque para ejecutar migraciones automáticas
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<MercadoPagoAPI.Models.AppDbContext>();
+        // Esto aplica cualquier migración pendiente en cada inicio
+        context.Database.Migrate();
+        Console.WriteLine("--> Migraciones ejecutadas con éxito.");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"--> Error ejecutando migraciones: {ex.Message}");
+    }
+}
+
 app.UseCors();
 
 // Configure the HTTP request pipeline.
