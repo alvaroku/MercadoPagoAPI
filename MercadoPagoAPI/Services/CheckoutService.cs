@@ -66,14 +66,6 @@ namespace MercadoPagoAPI.Services
 
         public async Task ProcessWebhookAsync(JsonElement json)
         {
-            try
-            {
-                await _emailService.SendEmailAsync("alvaro.ku.dev@gmail.com","Mercado Pago Webhook", json.GetString()??"");
-            }
-            catch (Exception)
-            {
-
-            }
             if (json.TryGetProperty("data", out var data) && data.TryGetProperty("id", out var idProp))
             {
                 var paymentId = idProp.GetString();
