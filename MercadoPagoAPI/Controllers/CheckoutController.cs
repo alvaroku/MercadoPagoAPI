@@ -11,9 +11,13 @@ namespace MercadoPagoAPI.Controllers
     public class CheckoutController : ControllerBase
     {
         private readonly ICheckoutService _paymentService;
+        private readonly IEmailService _emailService;
+        public CheckoutController(ICheckoutService paymentService, IEmailService emailService)
+        {
+            _paymentService = paymentService;
+            _emailService = emailService;
+        }
 
-        public CheckoutController(ICheckoutService paymentService) => _paymentService = paymentService;
-        
         // Generar link de pago
         public async Task<IActionResult> Checkout([FromBody] CheckoutRequest req)
         {
@@ -24,7 +28,14 @@ namespace MercadoPagoAPI.Controllers
         [HttpPost("webhook")]
         public async Task<IActionResult> Webhook([FromBody] JsonElement json)
         {
-            await _paymentService.ProcessWebhookAsync(json);
+            try
+            {
+                await _paymentService.ProcessWebhookAsync(json);
+            }
+            catch (Exception e)
+            {
+                await _emailService.SendEmailAsync("alvaro.ku.dev@gmail.com", "Webhook Processing Error", e.Message+"- json: "+json.GetString());
+            }
             return Ok();
         }
     }
