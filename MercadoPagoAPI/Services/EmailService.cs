@@ -17,10 +17,11 @@ namespace MercadoPagoAPI.Services
     public class EmailService : IEmailService
     {
         private readonly EmailSettings _settings;
-
-        public EmailService(IOptions<EmailSettings> settings)
+        private readonly ILogger<EmailService> _logger;
+        public EmailService(IOptions<EmailSettings> settings, ILogger<EmailService> logger)
         {
             _settings = settings.Value;
+            _logger = logger;
         }
 
         public async Task SendEmailAsync(string toEmail, string subject, string body)
@@ -67,7 +68,7 @@ namespace MercadoPagoAPI.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error: {ex.Message}");
+                _logger.LogError(ex, "Error sending email to {ToEmail}", toEmail);
                 throw;
             }
         }

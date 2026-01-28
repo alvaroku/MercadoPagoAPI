@@ -19,13 +19,15 @@ namespace MercadoPagoAPI.Services
         private readonly IPaymentService _paymentService;
         private readonly IPreferenceService _preferenceService;
         private readonly IEmailService _emailService;
-        public MercadoPagoService(IConfiguration config, IHostEnvironment hostEnvironment, IPaymentService paymentService, IPreferenceService preferenceService, IEmailService emailService)
+        private readonly ILogger<MercadoPagoService> _logger;
+        public MercadoPagoService(IConfiguration config, IHostEnvironment hostEnvironment, IPaymentService paymentService, IPreferenceService preferenceService, IEmailService emailService, ILogger<MercadoPagoService> logger)
         {
             _config = config;
             _hostEnvironment = hostEnvironment;
             _paymentService = paymentService;
             _preferenceService = preferenceService;
             _emailService = emailService;
+            _logger = logger;
             MercadoPagoConfig.AccessToken = _config["MercadoPago:AccessToken"];
         }
 
@@ -71,7 +73,11 @@ namespace MercadoPagoAPI.Services
                 var paymentId = idProp.GetString();
                 var client = new PaymentClient();
                 var payment = await client.GetAsync(long.Parse(paymentId!));
-
+                if(payment is null)
+                {
+                    _logger.LogWarning("Payment with ID {PaymentId} not found.", paymentId);
+                    return;
+                }
                 await _paymentService.ProcessPaymentNotificationAsync(payment.ExternalReference, payment.TransactionAmount!.Value, payment!.Id!.ToString()!, payment.PaymentMethodId,payment.Status);
             }
 

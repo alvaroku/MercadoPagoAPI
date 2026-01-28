@@ -10,10 +10,12 @@ namespace MercadoPagoAPI.Services
     {
         private readonly IPreferenceService _preferenceService;
         private readonly AppDbContext _context;
-        public PaymentService(AppDbContext context, IPreferenceService preferenceService)
+        private readonly ILogger<PaymentService> _logger;
+        public PaymentService(AppDbContext context, IPreferenceService preferenceService, ILogger<PaymentService> logger)
         {
             _context = context;
             _preferenceService = preferenceService;
+            _logger = logger;
         }
 
         public async Task CreateAsync(Preference preference, decimal amount, string id, string paymentMethod)
@@ -31,7 +33,10 @@ namespace MercadoPagoAPI.Services
         {
             Preference? preference = await _preferenceService.GetByExternalReferenceAsync(externalReference);
             if (preference == null)
+            {
+                _logger.LogWarning("Preference with ExternalReference {ExternalReference} not found.", externalReference);
                 return;
+            }
 
             preference.Status = status;
 
