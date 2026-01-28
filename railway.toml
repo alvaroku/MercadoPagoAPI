@@ -5,5 +5,5 @@ dockerfilePath = "MercadoPagoAPI/Dockerfile"
 [deploy]
 startCommand = "dotnet MercadoPagoAPI.dll"
 restartPolicyType = "always"
-healthcheckPath = "/test/health"
+healthcheckPath = "/api/test/health"
 sleep = false
