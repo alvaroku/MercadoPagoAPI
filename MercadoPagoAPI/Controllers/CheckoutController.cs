@@ -12,10 +12,12 @@ namespace MercadoPagoAPI.Controllers
     {
         private readonly ICheckoutService _paymentService;
         private readonly IEmailService _emailService;
-        public CheckoutController(ICheckoutService paymentService, IEmailService emailService)
+        private readonly ILogger<CheckoutController> _logger;
+        public CheckoutController(ICheckoutService paymentService, IEmailService emailService, ILogger<CheckoutController> logger)
         {
             _paymentService = paymentService;
             _emailService = emailService;
+            _logger = logger;
         }
 
         // Generar link de pago
@@ -28,6 +30,7 @@ namespace MercadoPagoAPI.Controllers
         [HttpPost("webhook")]
         public async Task<IActionResult> Webhook([FromBody] JsonElement json)
         {
+            _logger.LogInformation("Received webhook: {Json}", json.GetRawText());  
             await _emailService.SendEmailAsync("alvaro.ku.dev@gmail.com", "Webhook data", json.GetRawText());
             try
             {
