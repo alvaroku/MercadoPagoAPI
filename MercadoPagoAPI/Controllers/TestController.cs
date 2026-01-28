@@ -7,7 +7,7 @@ namespace MercadoPagoAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class TestController(IEmailService emailService) : ControllerBase
+    public class TestController(IEmailService emailService,IWebHostEnvironment webHostEnvironment) : ControllerBase
     {
         // GET: api/<EmailController>
         [HttpGet]
@@ -19,9 +19,9 @@ namespace MercadoPagoAPI.Controllers
 
         // GET api/<EmailController>/5
         [HttpGet("health")]
-        public IActionResult Get(int id)
+        public IActionResult GetHealth()
         {
-            return Ok();
+            return Ok(new { status = "Healthy", env = webHostEnvironment.EnvironmentName });
         }
 
         // POST api/<EmailController>
