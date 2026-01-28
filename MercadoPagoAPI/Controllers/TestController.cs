@@ -7,7 +7,7 @@ namespace MercadoPagoAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class EmailController(IEmailService emailService) : ControllerBase
+    public class TestController(IEmailService emailService) : ControllerBase
     {
         // GET: api/<EmailController>
         [HttpGet]
@@ -18,10 +18,10 @@ namespace MercadoPagoAPI.Controllers
         }
 
         // GET api/<EmailController>/5
-        [HttpGet("{id}")]
-        public string Get(int id)
+        [HttpGet("health")]
+        public IActionResult Get(int id)
         {
-            return "value";
+            return Ok();
         }
 
         // POST api/<EmailController>
