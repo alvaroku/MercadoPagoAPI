@@ -31,14 +31,15 @@ namespace MercadoPagoAPI.Controllers
         public async Task<IActionResult> Webhook([FromBody] JsonElement json)
         {
             _logger.LogInformation("Received webhook: {Json}", json.GetRawText());  
-            await _emailService.SendEmailAsync("alvaro.ku.dev@gmail.com", "Webhook data", "json.GetRawText()");
+            //await _emailService.SendEmailAsync("alvaro.ku.dev@gmail.com", "Webhook data", "json.GetRawText()");
             try
             {
                 await _paymentService.ProcessWebhookAsync(json);
             }
             catch (Exception e)
             {
-                await _emailService.SendEmailAsync("alvaro.ku.dev@gmail.com", "Webhook Processing Error", e.Message + " "+ e.StackTrace);
+                _logger.LogError(e, "Error processing webhook");
+                //await _emailService.SendEmailAsync("alvaro.ku.dev@gmail.com", "Webhook Processing Error", e.Message + " "+ e.StackTrace);
             }
             return Ok();
         }
