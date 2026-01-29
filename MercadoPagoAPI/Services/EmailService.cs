@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
+using Resend;
 
 namespace MercadoPagoAPI.Services
 {
@@ -6,8 +7,9 @@ namespace MercadoPagoAPI.Services
     {
         public string BaseUrl { get; set; }
         public string ApiKey { get; set; }
-        public string From { get; set; }
+        public string FromEmail { get; set; }
         public string FromName { get; set; }
+        public string ReplyTo { get; set; }
     }
 
     public interface IEmailService
@@ -18,51 +20,26 @@ namespace MercadoPagoAPI.Services
     {
         private readonly EmailSettings _settings;
         private readonly ILogger<EmailService> _logger;
-        public EmailService(IOptions<EmailSettings> settings, ILogger<EmailService> logger)
+        private readonly IResend _resend;
+        public EmailService(IOptions<EmailSettings> settings, ILogger<EmailService> logger, IResend resend)
         {
             _settings = settings.Value;
             _logger = logger;
+            _resend = resend;
         }
 
         public async Task SendEmailAsync(string toEmail, string subject, string body)
         {
             try
             {
-                var client = new HttpClient();
-                var request = new HttpRequestMessage(HttpMethod.Post, $"{_settings.BaseUrl}/email/4/messages");
+                var message = new EmailMessage();
+                message.From = $"{_settings.FromName} <{_settings.FromEmail}>";
+                message.To.Add(toEmail);
+                message.ReplyTo = _settings.ReplyTo;
+                message.Subject = subject;
+                message.HtmlBody = body;
 
-                // Usamos el ApiKey del setting
-                request.Headers.Add("Authorization", $"App {_settings.ApiKey}");
-                request.Headers.Add("Accept", "application/json");
-
-                // Construcción del string con interpolación ($)
-                // Nota: Las llaves del JSON se deben duplicar {{ }} para que C# no las confunda con variables
-                var jsonString = $@"{{
-            ""messages"": [
-                {{
-                    ""destinations"": [
-                        {{
-                            ""to"": [
-                                {{
-                                    ""destination"": ""{toEmail}""
-                                }}
-                            ]
-                        }}
-                    ],
-                   ""sender"": ""{_settings.FromName} <{_settings.From}>"",
-                    ""content"": {{
-                        ""subject"": ""{subject}"",
-                        ""text"": ""{body}""
-                    }}
-                }}
-            ]
-        }}";
-
-                var content = new StringContent(jsonString, null, "application/json");
-                request.Content = content;
-
-                var response = await client.SendAsync(request);
-                response.EnsureSuccessStatusCode();
+                await _resend.EmailSendAsync(message);
             }
             catch (Exception ex)
             {
