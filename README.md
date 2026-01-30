@@ -24,7 +24,3 @@
   Recibe notificaciones de Mercado Pago y valida la `secretKey`.
 
 - Otros endpoints auxiliares para pruebas y utilidades.
-
-## Configuración
-
-1. **Clonar el repositorio:**
