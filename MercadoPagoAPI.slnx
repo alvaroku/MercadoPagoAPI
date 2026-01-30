@@ -2,6 +2,7 @@
   <Folder Name="/Elementos de la solución/">
     <File Path="index.html" />
     <File Path="railway.toml" />
+    <File Path="README.md" />
   </Folder>
   <Project Path="MercadoPagoAPI/MercadoPagoAPI.csproj" />
 </Solution>
