@@ -18,5 +18,10 @@ namespace MercadoPagoAPI.Controllers
             return new List<string>() { "success"};
         }
 
+        [HttpGet("health")]
+        public async Task<IActionResult> Health()
+        {
+            return Ok(new { env = webHostEnvironment.EnvironmentName, status = "Healthy" });
+        }
     }
 }
